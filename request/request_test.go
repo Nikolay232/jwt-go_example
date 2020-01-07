@@ -28,30 +28,30 @@ var requestTestData = []struct {
 		url.Values{},
 		true,
 	},
-	{
-		"oauth bearer token - header",
-		jwt.MapClaims{"foo": "bar"},
-		OAuth2Extractor,
-		map[string]string{"Authorization": "Bearer %v"},
-		url.Values{},
-		true,
-	},
-	{
-		"oauth bearer token - url",
-		jwt.MapClaims{"foo": "bar"},
-		OAuth2Extractor,
-		map[string]string{},
-		url.Values{"access_token": {"%v"}},
-		true,
-	},
-	{
-		"url token",
-		jwt.MapClaims{"foo": "bar"},
-		ArgumentExtractor{"token"},
-		map[string]string{},
-		url.Values{"token": {"%v"}},
-		true,
-	},
+	//{
+	//	"oauth bearer token - header",
+	//	jwt.MapClaims{"foo": "bar"},
+	//	OAuth2Extractor,
+	//	map[string]string{"Authorization": "Bearer %v"},
+	//	url.Values{},
+	//	true,
+	//},
+	//{
+	//	"oauth bearer token - url",
+	//	jwt.MapClaims{"foo": "bar"},
+	//	OAuth2Extractor,
+	//	map[string]string{},
+	//	url.Values{"access_token": {"%v"}},
+	//	true,
+	//},
+	//{
+	//	"url token",
+	//	jwt.MapClaims{"foo": "bar"},
+	//	ArgumentExtractor{"token"},
+	//	map[string]string{},
+	//	url.Values{"token": {"%v"}},
+	//	true,
+	//},
 }
 
 func TestParseRequest(t *testing.T) {
@@ -101,4 +101,36 @@ func TestParseRequest(t *testing.T) {
 			t.Errorf("[%v] Invalid token passed validation", data.name)
 		}
 	}
+}
+func TestMyParseRequest512(t *testing.T) {
+	t.Errorf("Invalid token passed validation")
+	// load keys from disk
+	privateKey := test.LoadRSAPrivateKeyFromDisk("../test/sample_key_512")
+	publicKey := test.LoadRSAPublicKeyFromDisk("../test/sample_key_512.pub")
+	//privateKey := test.LoadRSAPrivateKeyFromDisk("../test/sample_key")
+	//publicKey := test.LoadRSAPublicKeyFromDisk("../test/sample_key.pub")
+	keyfunc := func(*jwt.Token) (interface{}, error) {
+		return publicKey, nil
+	}
+
+	// Bearer token request
+	for _, data := range requestTestData {
+		fmt.Println(`================================================================TOKEN===================================================================`)
+		// Make token from claims
+		tokenString := test.MakeSampleTokenCustom(data.claims, privateKey, jwt.SigningMethodRS512)
+
+		fmt.Println(tokenString)
+
+		token, err := jwt.Parse(tokenString, keyfunc)
+		fmt.Println(`---------------------------------------------------------------------------------------------------------------------------`)
+		fmt.Println(token)
+		fmt.Println(`-----------------------------------------------------------HEADER----------------------------------------------------------------`)
+		fmt.Println(token.Header)
+		fmt.Println(`-----------------------------------------------------------PAYLOAD----------------------------------------------------------------`)
+		fmt.Println(token.Claims)
+		fmt.Println(`-----------------------------------------------------------ERROR----------------------------------------------------------------`)
+		fmt.Println(err)
+	}
+
+	t.Errorf("Invalid token passed validation")
 }

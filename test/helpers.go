@@ -43,6 +43,17 @@ func MakeSampleToken(c jwt.Claims, key interface{}) string {
 	return s
 }
 
+func MakeSampleTokenCustom(c jwt.Claims, key interface{}, signingMethod *jwt.SigningMethodRSA) string {
+	token := jwt.NewWithClaims(signingMethod, c)
+	s, e := token.SignedString(key)
+
+	if e != nil {
+		panic(e.Error())
+	}
+
+	return s
+}
+
 // At overrides time value for tests.  Restore default value after.
 func At(t time.Time, f func()) {
 	jwt.TimeFunc = func() time.Time {
